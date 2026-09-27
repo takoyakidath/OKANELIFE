@@ -316,3 +316,33 @@ okanelife-export-YYYY-MM-DD.zip
   メンテ停止・脆弱性リスクを最小化し、10年後でも動かせるようにする。
 - **フロントの型安全**: TypeScript + zodでAPIレスポンスをランタイム検証し、バックエンドの
   スキーマ変更をビルド時/実行時に検知できるようにする。
+
+---
+
+## 10. 実装中に見つけて対処した問題
+
+コードを書きながら見つかった、設計時点では想定していなかった問題とその対処です。
+
+- **オープンリダイレクト**: Google OAuthの `redirect` クエリパラメータをそのまま
+  `NextResponse.redirect()` に渡すと、`/api/auth/google/start?redirect=https://evil.example`
+  のようなリンクを踏ませることでログイン後に外部サイトへ誘導できてしまう
+  (`new URL(絶対URL, base)` は `base` を無視するため)。`src/lib/safe-redirect.ts` で
+  「`/`から始まり`//`や`://`を含まない相対パスのみ許可」に正規化し、リダイレクト先を
+  受け取る全箇所(`start`/`callback`/`refresh` route)で適用した。
+- **リフレッシュトークン再利用時のセッションファミリー無効化**: ローテーション済み
+  (＝既に無効化済み)のリフレッシュトークンが再送されてきた場合、単にそのリクエストを
+  拒否するだけでなく、そのユーザーの全リフレッシュトークンを失効させるようにした
+  (盗まれたトークンが再生された可能性が高いため)。自然な期限切れ(未使用のまま失効)
+  はこの扱いの対象外とし、他デバイスを誤って全ログアウトさせないようにしている。
+- **UUIDの一意性スコープ**: `companies`/`incomes`/`events`/`income_sources` の `uuid` を
+  当初グローバルUNIQUEにしていたが、これだとエクスポートしたデータを「別の」
+  OKANELIFEユーザー(将来のアカウント移行シナリオ)にインポートする際、同じUUIDが
+  既に別ユーザーの行に使われていて衝突する。`UNIQUE(uuid, user_id)` に変更し、
+  インポートは常に「同じUUID = 同じユーザー内での同一レコード」として扱うようにした。
+- **グラフの初回描画**: RechartsのDOM再測定がテスト環境の一部ブラウザで発火せず、
+  グラフが空白になる問題を確認した。`ResponsiveContainer` の自動計測に依存せず、
+  `getBoundingClientRect` で同期的に測定する `ChartFrame` を自前実装して置き換えた
+  (`src/components/charts/chart-frame.tsx`)。
+- **PWA関連ライブラリの選定**: Serwist(`@serwist/next`)はNext.js 16のTurbopackビルドに
+  非対応、Turbopack対応版(`@serwist/turbopack`)はファイル規約が実験的で挙動が不明瞭
+  だったため、両方を見送り、`public/sw.js` を直接手書きした(依存ゼロという方針にも合致)。
