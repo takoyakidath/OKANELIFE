@@ -59,14 +59,22 @@ Dependency-free (no PHPUnit) — each `tests/*Test.php` file returns a map of
    access token.
 
    With FTP only, `./deploy.sh api-env` (repo root) builds this file from the
-   repo-root `.env` (`mysql_*`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`) and uploads
-   it over FTPS; `./deploy.sh sql` bundles the migrations for a one-time
-   phpMyAdmin import in place of step 4.
-4. Run migrations once, over SSH if your plan has it, or via a one-off PHP
-   CLI script:
+   repo-root `.env` (`mysql_*`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`,
+   `MIGRATE_TOKEN`) and uploads it over FTPS.
+4. Run migrations. Over SSH, if your plan has it:
    ```bash
    php bin/migrate.php
    ```
+   FTP-only plans can't run the PHP CLI over SSH. Instead, open
+   `public/migrate.php` in a browser with the `MIGRATE_TOKEN` from step 3 as
+   a query param — it applies whatever's pending and is safe to hit again
+   after every deploy that adds new files under `migrations/`:
+   ```
+   https://your-domain.example/migrate.php?token=<MIGRATE_TOKEN>
+   ```
+   It 403s without a matching token, and `MIGRATE_TOKEN` unset in `.env`
+   disables it entirely. `./deploy.sh sql` remains available for bundling
+   everything into one `phpMyAdmin` import instead.
 5. Set up a cron job (Lolipop's control panel has a cron feature) to run
    every 1–5 minutes:
    ```bash
@@ -89,7 +97,9 @@ Dependency-free (no PHPUnit) — each `tests/*Test.php` file returns a map of
   retrospective, timeline, export, import)
 - `src/Http/` — Kernel (route table + error handling), controllers, auth
   middleware
-- `migrations/*.sql` — MySQL schema, applied in order by `bin/migrate.php`
+- `migrations/*.sql` — MySQL schema, applied in order by `Support\Migrator`
+  (run via `bin/migrate.php` over SSH, or `public/migrate.php?token=...`
+  over HTTP for FTP-only plans)
 - `bin/worker.php` — cron entry point for export jobs
 - `tests/` — the test runner and test files (SQLite-only, never touches
   the MySQL migrations directly)

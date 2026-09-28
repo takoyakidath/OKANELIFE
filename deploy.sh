@@ -16,6 +16,8 @@
 #
 #   mysql_host=... mysql_user=... mysql_pass=... mysql_db=...   # api-env 用
 #   JWT_SECRET=...   GOOGLE_CLIENT_ID=...                      # api-env 用
+#   MIGRATE_TOKEN=...                                          # api-env 用。FTP デプロイ後、
+#                                                               # https://.../migrate.php?token=... を開いてマイグレーション実行
 #
 #   LOLIPOP_SSH_HOST=ssh.lolipop.jp                  # SSH で送る場合(マイグレーションも実行)
 #   LOLIPOP_SSH_PORT=2222
@@ -89,7 +91,9 @@ LFTP
 
   echo
   echo "FTP ではマイグレーションを実行できません。新しいマイグレーションがあれば"
-  echo "  ./deploy.sh sql で SQL を作り、phpMyAdmin からインポートしてください。"
+  echo "  https://<domain>/migrate.php?token=\$MIGRATE_TOKEN を開いて適用してください"
+  echo "  (api-env で MIGRATE_TOKEN 未設定の場合は先に ./deploy.sh api-env を実行)。"
+  echo "  初回導入など phpMyAdmin から直接流したい場合は ./deploy.sh sql も使えます。"
 }
 
 deploy_api_ssh() {
@@ -124,10 +128,11 @@ deploy_api_env() {
   load_env
   FTP_API_DIR="$(ftp_api_dir)"
   local k
-  for k in mysql_host mysql_user mysql_pass mysql_db JWT_SECRET GOOGLE_CLIENT_ID FTP_HOST FTP_USER FTP_PASS; do
+  for k in mysql_host mysql_user mysql_pass mysql_db JWT_SECRET GOOGLE_CLIENT_ID MIGRATE_TOKEN FTP_HOST FTP_USER FTP_PASS; do
     [[ -n "${!k:-}" ]] || { echo ".env に $k がありません" >&2; exit 1; }
   done
   [[ ${#JWT_SECRET} -ge 64 ]] || { echo "JWT_SECRET は 64 文字以上にしてください" >&2; exit 1; }
+  [[ ${#MIGRATE_TOKEN} -ge 32 ]] || { echo "MIGRATE_TOKEN は 32 文字以上にしてください" >&2; exit 1; }
 
   local tmp; tmp="$(mktemp)"
   trap 'rm -f "$tmp"' RETURN
@@ -141,6 +146,7 @@ DB_USER=$mysql_user
 DB_PASS=$mysql_pass
 JWT_SECRET=$JWT_SECRET
 GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+MIGRATE_TOKEN=$MIGRATE_TOKEN
 API_BASE_PATH=${API_BASE_PATH:-}
 ENV
 
