@@ -1,0 +1,3 @@
+# api/ 一式が公開ディレクトリ配下に置かれても、public/ 以外(.env, storage/ の
+# エクスポート, src/ など)は外から読めないようにする。
+Require all denied

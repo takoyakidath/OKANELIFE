@@ -49,6 +49,19 @@ Dependency-free (no PHPUnit) — each `tests/*Test.php` file returns a map of
 3. Copy `.env.example` to `.env` (same directory as `bootstrap.php`, i.e.
    one level above `public/`) and fill in the MySQL credentials, a random
    `JWT_SECRET`, and `GOOGLE_CLIENT_ID`.
+
+   Generate `JWT_SECRET` from a CSPRNG (96 hex chars) and write it straight
+   into the repo-root `.env` without echoing it:
+   ```bash
+   sed -i '' "s/^JWT_SECRET.*/JWT_SECRET=$(openssl rand -hex 48)/" .env
+   ```
+   (`sed -i` without `''` on Linux.) Rotating it invalidates every issued
+   access token.
+
+   With FTP only, `./deploy.sh api-env` (repo root) builds this file from the
+   repo-root `.env` (`mysql_*`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`) and uploads
+   it over FTPS; `./deploy.sh sql` bundles the migrations for a one-time
+   phpMyAdmin import in place of step 4.
 4. Run migrations once, over SSH if your plan has it, or via a one-off PHP
    CLI script:
    ```bash
