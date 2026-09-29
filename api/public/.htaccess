@@ -1,5 +1,12 @@
 RewriteEngine On
 
+# Apache/CGI on this host does not forward the Authorization header into
+# $_SERVER['HTTP_AUTHORIZATION'] by default, so every bearer-token request
+# (everything but login/refresh/logout, which use JSON body fields) would
+# otherwise 401 with "no bearer token" no matter how valid the token is.
+RewriteCond %{HTTP:Authorization} .
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
 # Route every request that isn't an existing file through index.php.
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
