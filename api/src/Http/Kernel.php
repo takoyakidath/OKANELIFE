@@ -14,6 +14,7 @@ use Okanelife\Http\Controllers\MilestoneController;
 use Okanelife\Http\Controllers\RetrospectiveController;
 use Okanelife\Http\Controllers\SourceController;
 use Okanelife\Http\Controllers\StatsController;
+use Okanelife\Http\Controllers\StatusController;
 use Okanelife\Http\Controllers\TimelineController;
 use Okanelife\Http\Middleware\AuthException as MiddlewareAuthException;
 use Okanelife\Http\Middleware\AuthMiddleware;
@@ -82,6 +83,9 @@ final class Kernel
     {
         $r = $this->router;
         $auth = fn (callable $h) => AuthMiddleware::wrap($h);
+
+        $status = new StatusController();
+        $r->get('/status', [$status, 'show']);
 
         $authController = new AuthController();
         $r->post('/v1/auth/google', [$authController, 'googleLogin']);
