@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getValidSession, clearSessionCookie } from "@/lib/auth-server";
-import { env } from "@/lib/env";
 import { safeRedirectPath } from "@/lib/safe-redirect";
+import { trustedOrigin } from "@/lib/trusted-origin";
 
 /**
  * Called by `proxy.ts` (redirect) when a page navigation finds an
@@ -12,17 +12,15 @@ import { safeRedirectPath } from "@/lib/safe-redirect";
  */
 export async function GET(request: NextRequest) {
   const redirectTo = safeRedirectPath(request.nextUrl.searchParams.get("redirect"));
+  const origin = trustedOrigin(request);
   const session = await getValidSession();
   if (!session) {
     await clearSessionCookie();
     return NextResponse.redirect(
-      new URL(
-        `/login?redirect=${encodeURIComponent(redirectTo)}`,
-        env.appUrl()
-      )
+      new URL(`/login?redirect=${encodeURIComponent(redirectTo)}`, origin)
     );
   }
-  return NextResponse.redirect(new URL(redirectTo, env.appUrl()));
+  return NextResponse.redirect(new URL(redirectTo, origin));
 }
 
 export async function POST() {

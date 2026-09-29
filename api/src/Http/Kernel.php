@@ -57,6 +57,7 @@ final class Kernel
         } catch (ValidationException $e) {
             return $this->withSecurityHeaders(Response::error(422, $e->getMessage()));
         } catch (MiddlewareAuthException $e) {
+            error_log('auth: ' . $e->getMessage());
             return $this->withSecurityHeaders(Response::error(401, 'unauthenticated'));
         } catch (DomainAuthException $e) {
             return $this->withSecurityHeaders(Response::error($e->status, $e->getMessage()));

@@ -29,8 +29,9 @@ if ($expected === '' || !hash_equals($expected, (string) $given)) {
 try {
     $ran = Migrator::run();
 } catch (\RuntimeException $e) {
+    error_log('migrate: ' . $e->getMessage());
     http_response_code(500);
-    echo $e->getMessage() . "\n";
+    echo "Migration failed. Check the server error log for details.\n";
     exit;
 }
 

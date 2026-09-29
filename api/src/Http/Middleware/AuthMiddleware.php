@@ -16,7 +16,7 @@ final class AuthMiddleware
         return function (Request $request) use ($handler) {
             $token = $request->bearerToken();
             if ($token === null) {
-                throw new AuthException('unauthenticated');
+                throw new AuthException('no bearer token');
             }
             $user = (new AuthService())->resolveAccessToken($token);
             if ($user === null) {

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { TrendingUp } from "lucide-react";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -40,13 +39,13 @@ export default async function LoginPage({
         </p>
       )}
 
-      <Link
+      <a
         href={startUrl}
         className="flex h-12 w-full max-w-xs items-center justify-center gap-2 rounded-lg border border-input bg-card px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent"
       >
         <GoogleGlyph />
         Googleでログイン
-      </Link>
+      </a>
 
       <p className="max-w-xs text-xs text-muted-foreground">
         OKANELIFEはあなたのGoogleアカウントとは別に、独立したユーザーIDでデータを保管します。

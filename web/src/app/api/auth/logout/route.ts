@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { getSession, clearSessionCookie } from "@/lib/auth-server";
 import { backendFetch } from "@/lib/backend";
-import { env } from "@/lib/env";
+import { trustedOrigin } from "@/lib/trusted-origin";
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   const session = await getSession();
   if (session) {
     try {
@@ -18,5 +18,5 @@ export async function POST() {
     }
   }
   await clearSessionCookie();
-  return NextResponse.redirect(new URL("/login", env.appUrl()));
+  return NextResponse.redirect(new URL("/login", trustedOrigin(request)));
 }

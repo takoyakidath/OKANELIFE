@@ -30,7 +30,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 usage() {
-  sed -n '2,25p' "$0" | sed 's/^# \{0,1\}//'
+  sed -n '2,27p' "$0" | sed 's/^# \{0,1\}//'
   exit 1
 }
 
@@ -135,7 +135,7 @@ deploy_api_env() {
   [[ ${#MIGRATE_TOKEN} -ge 32 ]] || { echo "MIGRATE_TOKEN は 32 文字以上にしてください" >&2; exit 1; }
 
   local tmp; tmp="$(mktemp)"
-  trap 'rm -f "$tmp"' RETURN
+  trap 'rm -f "$tmp"' EXIT
   chmod 600 "$tmp"
   cat > "$tmp" <<ENV
 DB_DRIVER=mysql

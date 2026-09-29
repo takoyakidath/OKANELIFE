@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 import { env } from "@/lib/env";
 import { safeRedirectPath } from "@/lib/safe-redirect";
+import { trustedOrigin } from "@/lib/trusted-origin";
 import { decodeJwtExp } from "@/lib/session";
 import { setSessionCookie, getValidSession } from "@/lib/auth-server";
 import { backendJson, BackendError } from "@/lib/backend";
@@ -10,7 +11,7 @@ import { backendJson, BackendError } from "@/lib/backend";
 const OAUTH_STATE_COOKIE = "okl_oauth_state";
 
 export async function GET(request: NextRequest) {
-  const appUrl = env.appUrl();
+  const appUrl = trustedOrigin(request);
   const code = request.nextUrl.searchParams.get("code");
   const state = request.nextUrl.searchParams.get("state");
   const errorParam = request.nextUrl.searchParams.get("error");
@@ -26,6 +27,9 @@ export async function GET(request: NextRequest) {
   }
 
   if (!code || !state || !rawState) {
+    console.error(
+      `oauth_state: missing code/state/cookie (code=${!!code} state=${!!state} cookie=${!!rawState})`
+    );
     return NextResponse.redirect(new URL(`/login?error=oauth_state`, appUrl));
   }
 
@@ -38,10 +42,12 @@ export async function GET(request: NextRequest) {
   try {
     parsedState = JSON.parse(rawState);
   } catch {
+    console.error("oauth_state: cookie was not valid JSON");
     return NextResponse.redirect(new URL(`/login?error=oauth_state`, appUrl));
   }
 
   if (parsedState.state !== state) {
+    console.error("oauth_state: state param did not match cookie");
     return NextResponse.redirect(new URL(`/login?error=oauth_state`, appUrl));
   }
 
@@ -62,6 +68,10 @@ export async function GET(request: NextRequest) {
   });
 
   if (!tokenRes.ok) {
+    const body = await tokenRes.text().catch(() => "");
+    console.error(
+      `Google token exchange failed: ${tokenRes.status} ${body}`
+    );
     return NextResponse.redirect(
       new URL(`/login?error=google_token_exchange`, appUrl)
     );
@@ -69,6 +79,7 @@ export async function GET(request: NextRequest) {
 
   const tokenData = (await tokenRes.json()) as { id_token?: string };
   if (!tokenData.id_token) {
+    console.error(`no_id_token: token response had keys ${Object.keys(tokenData).join(",")}`);
     return NextResponse.redirect(new URL(`/login?error=no_id_token`, appUrl));
   }
 
@@ -124,6 +135,13 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const message =
       error instanceof BackendError ? error.message : "sign_in_failed";
+    console.error(
+      `/v1/auth/google backend call failed: ${
+        error instanceof BackendError
+          ? `${error.status} ${error.message}`
+          : String(error)
+      }`
+    );
     return NextResponse.redirect(
       new URL(`/login?error=${encodeURIComponent(message)}`, appUrl)
     );

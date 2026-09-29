@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 
 import { env } from "@/lib/env";
 import { safeRedirectPath } from "@/lib/safe-redirect";
+import { trustedOrigin } from "@/lib/trusted-origin";
 
 const OAUTH_STATE_COOKIE = "okl_oauth_state";
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
   authUrl.searchParams.set("client_id", env.googleClientId());
   authUrl.searchParams.set(
     "redirect_uri",
-    new URL("/api/auth/google/callback", env.appUrl()).toString()
+    new URL("/api/auth/google/callback", trustedOrigin(request)).toString()
   );
   authUrl.searchParams.set("response_type", "code");
   authUrl.searchParams.set("scope", "openid email profile");

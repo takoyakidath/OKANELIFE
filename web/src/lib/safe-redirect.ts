@@ -3,7 +3,7 @@
  * values flow in from query params an attacker can craft (e.g. a phishing
  * link to /login?redirect=https://evil.example), so every redirect target
  * derived from user input must pass through this before being used in a
- * NextResponse.redirect() or new URL(..., appUrl) call.
+ * NextResponse.redirect() or new URL(..., request.nextUrl.origin) call.
  */
 export function safeRedirectPath(value: string | null | undefined): string {
   if (!value) return "/";

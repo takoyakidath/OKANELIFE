@@ -50,17 +50,24 @@ Dependency-free (no PHPUnit) — each `tests/*Test.php` file returns a map of
    one level above `public/`) and fill in the MySQL credentials, a random
    `JWT_SECRET`, and `GOOGLE_CLIENT_ID`.
 
-   Generate `JWT_SECRET` from a CSPRNG (96 hex chars) and write it straight
-   into the repo-root `.env` without echoing it:
+   Generate `JWT_SECRET` from a CSPRNG (96 hex chars). Rotating it
+   invalidates every issued access token.
+   ```bash
+   sed -i '' "s/^JWT_SECRET.*/JWT_SECRET=$(openssl rand -hex 48)/" api/.env
+   ```
+   (`sed -i` without `''` on Linux.) Run this from the repo root, or drop
+   the `api/` prefix if you're already inside `api/`.
+
+   With FTP only, don't edit `api/.env` directly — `./deploy.sh api-env`
+   (repo root) builds it instead from the **repo-root** `.env`
+   (`mysql_*`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`, `MIGRATE_TOKEN`) and
+   uploads it over FTPS, so generate the secret into that file instead:
    ```bash
    sed -i '' "s/^JWT_SECRET.*/JWT_SECRET=$(openssl rand -hex 48)/" .env
    ```
-   (`sed -i` without `''` on Linux.) Rotating it invalidates every issued
-   access token.
-
-   With FTP only, `./deploy.sh api-env` (repo root) builds this file from the
-   repo-root `.env` (`mysql_*`, `JWT_SECRET`, `GOOGLE_CLIENT_ID`,
-   `MIGRATE_TOKEN`) and uploads it over FTPS.
+   Keep whichever file you actually deploy from as the source of truth —
+   writing the secret into both independently will desync them and
+   invalidate sessions on the next deploy.
 4. Run migrations. Over SSH, if your plan has it:
    ```bash
    php bin/migrate.php
