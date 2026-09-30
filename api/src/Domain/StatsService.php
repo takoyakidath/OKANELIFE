@@ -118,7 +118,7 @@ final class StatsService
     public function byCompany(int $userId): array
     {
         $stmt = Database::pdo()->prepare(
-            "SELECT c.uuid AS key, c.name AS label, SUM(i.amount) AS total
+            "SELECT c.uuid AS `key`, c.name AS label, SUM(i.amount) AS total
              FROM incomes i
              JOIN companies c ON c.id = i.company_id
              WHERE i.user_id = ? AND i.deleted_at IS NULL AND i.amount IS NOT NULL

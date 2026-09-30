@@ -73,6 +73,26 @@ return [
         assert_equal(42000, $septemberTotal);
     },
 
+    'StatsService::byCompany groups totals per company and keys them by uuid' => function () {
+        $user = test_create_user();
+        $userId = (int) $user['id'];
+        $company = (new CompanyRepository())->findOrCreateByName($userId, 'サイゼリヤ');
+        $repo = new IncomeRepository();
+        foreach ([10000, 20000] as $amount) {
+            $repo->create($userId, [
+                'amount' => $amount, 'amount_precision' => 'exact',
+                'income_date' => '2026-09-10', 'date_precision' => 'day',
+                'source_id' => null, 'company_id' => $company['id'], 'memo' => null,
+            ]);
+        }
+
+        $byCompany = (new StatsService())->byCompany($userId);
+        assert_equal(1, count($byCompany));
+        assert_equal($company['uuid'], $byCompany[0]['key']);
+        assert_equal('サイゼリヤ', $byCompany[0]['label']);
+        assert_equal(30000, $byCompany[0]['total']);
+    },
+
     'IncomeRepository cursor pagination does not repeat or skip rows' => function () {
         $user = test_create_user();
         $userId = (int) $user['id'];
