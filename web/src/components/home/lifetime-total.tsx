@@ -25,9 +25,9 @@ export function LifetimeTotal({ amount }: { amount: number }) {
   }, [amount]);
 
   return (
-    <div className="flex flex-col items-center gap-1 py-2 text-center">
+    <div className="flex flex-col items-center gap-2 py-4 text-center">
       <p className="text-sm font-medium text-muted-foreground">これまでに稼いだお金</p>
-      <p className="text-4xl font-bold tabular-nums tracking-tight sm:text-5xl">
+      <p className="text-5xl font-bold tabular-nums tracking-tight sm:text-6xl">
         ¥{display.toLocaleString("ja-JP")}
       </p>
     </div>

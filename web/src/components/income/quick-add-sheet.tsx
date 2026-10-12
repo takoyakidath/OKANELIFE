@@ -23,18 +23,49 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api-client";
-import type { Company, IncomeSource } from "@/lib/types";
+import { formatYen } from "@/lib/format";
+import { MILESTONE_LABELS, pickHighlightMilestone } from "@/lib/milestones";
+import type { Company, IncomeSource, Milestone } from "@/lib/types";
+
+const LAST_SOURCE_KEY = "okanelife:last-source";
+
+/** Local calendar date as YYYY-MM-DD. (`toISOString()` is UTC, which returns
+ * the previous day in Japan before 9:00.) */
+function localDate(offsetDays = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + offsetDays);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  return localDate();
+}
+
+function readLastSource(): string | null {
+  try {
+    return localStorage.getItem(LAST_SOURCE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeLastSource(uuid: string) {
+  try {
+    localStorage.setItem(LAST_SOURCE_KEY, uuid);
+  } catch {
+    // storage unavailable (private mode etc.) — falls back to the first source
+  }
 }
 
 export function QuickAddSheet({
   open,
   onOpenChange,
+  onMilestone,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onMilestone?: (message: string) => void;
 }) {
   const router = useRouter();
   const [sources, setSources] = useState<IncomeSource[]>([]);
@@ -44,11 +75,14 @@ export function QuickAddSheet({
   const [sourceUuid, setSourceUuid] = useState<string>("");
   const [companyName, setCompanyName] = useState("");
   const [memo, setMemo] = useState("");
+  const [recordedAmount, setRecordedAmount] = useState<number | null>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">(
     "idle"
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
+  // Milestone uuids known before this record, to tell which ones are new.
+  const knownMilestonesRef = useRef<Set<string> | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -56,7 +90,18 @@ export function QuickAddSheet({
       .get<IncomeSource[]>("/sources")
       .then((data) => {
         setSources(data);
-        if (!sourceUuid && data.length > 0) setSourceUuid(data[0].uuid);
+        if (!sourceUuid && data.length > 0) {
+          const last = readLastSource();
+          const remembered = data.find((s) => s.uuid === last);
+          setSourceUuid((remembered ?? data[0]).uuid);
+        }
+      })
+      .catch(() => {});
+    knownMilestonesRef.current = null;
+    apiClient
+      .get<Milestone[]>("/milestones")
+      .then((list) => {
+        knownMilestonesRef.current = new Set(list.map((m) => m.uuid));
       })
       .catch(() => {});
     apiClient
@@ -73,7 +118,24 @@ export function QuickAddSheet({
     setCompanyName("");
     setMemo("");
     setStatus("idle");
+    setRecordedAmount(null);
     setErrorMessage(null);
+  }
+
+  async function findNewMilestoneMessage(): Promise<string | null> {
+    const known = knownMilestonesRef.current;
+    if (!known) return null;
+    try {
+      const after = await apiClient.get<Milestone[]>("/milestones");
+      const highlight = pickHighlightMilestone(
+        after.filter((m) => !known.has(m.uuid))
+      );
+      if (!highlight) return null;
+      const label = MILESTONE_LABELS[highlight.type]?.(highlight.value);
+      return label ? `マイルストーン達成：${label}` : null;
+    } catch {
+      return null;
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -96,11 +158,15 @@ export function QuickAddSheet({
         company_name: companyName || null,
         memo: memo || null,
       });
+      setRecordedAmount(numericAmount);
       setStatus("success");
+      if (sourceUuid) writeLastSource(sourceUuid);
       router.refresh();
+      const milestoneMessage = await findNewMilestoneMessage();
       setTimeout(() => {
         onOpenChange(false);
         reset();
+        if (milestoneMessage) onMilestone?.(milestoneMessage);
       }, 900);
     } catch {
       setStatus("error");
@@ -142,17 +208,40 @@ export function QuickAddSheet({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="date">日付</Label>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="date">日付</Label>
+            <div className="flex items-center gap-2">
               <Input
                 id="date"
                 type="date"
                 value={date}
                 max={today()}
                 onChange={(e) => setDate(e.target.value)}
+                className="flex-1"
               />
+              {[
+                { label: "今日", value: localDate() },
+                { label: "昨日", value: localDate(-1) },
+              ].map((chip) => (
+                <Button
+                  key={chip.label}
+                  type="button"
+                  variant={date === chip.value ? "secondary" : "outline"}
+                  aria-pressed={date === chip.value}
+                  className="h-11"
+                  onClick={() => setDate(chip.value)}
+                >
+                  {chip.label}
+                </Button>
+              ))}
             </div>
+          </div>
+
+          <div className="flex flex-col gap-4 border-t border-border pt-4">
+            <p className="text-xs font-medium text-muted-foreground">
+              詳細（あとからでも追加できます）
+            </p>
+
             <div className="flex flex-col gap-1.5">
               <Label>収入源</Label>
               <Select value={sourceUuid} onValueChange={setSourceUuid}>
@@ -168,32 +257,32 @@ export function QuickAddSheet({
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="company">会社・組織（任意）</Label>
-            <Input
-              id="company"
-              list="recent-companies"
-              placeholder="例：サイゼリヤ"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-            />
-            <datalist id="recent-companies">
-              {companies.map((c) => (
-                <option key={c.uuid} value={c.name} />
-              ))}
-            </datalist>
-          </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="company">会社・組織（任意）</Label>
+              <Input
+                id="company"
+                list="recent-companies"
+                placeholder="例：サイゼリヤ"
+                value={companyName}
+                onChange={(e) => setCompanyName(e.target.value)}
+              />
+              <datalist id="recent-companies">
+                {companies.map((c) => (
+                  <option key={c.uuid} value={c.name} />
+                ))}
+              </datalist>
+            </div>
 
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="memo">メモ（任意）</Label>
-            <Input
-              id="memo"
-              placeholder="例：9月分給与"
-              value={memo}
-              onChange={(e) => setMemo(e.target.value)}
-            />
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="memo">メモ（任意）</Label>
+              <Input
+                id="memo"
+                placeholder="例：9月分給与"
+                value={memo}
+                onChange={(e) => setMemo(e.target.value)}
+              />
+            </div>
           </div>
 
           {errorMessage && (
@@ -208,7 +297,9 @@ export function QuickAddSheet({
             >
               {status === "submitting" && <Loader2 className="size-4 animate-spin" />}
               {status === "success" && <Check className="size-4" />}
-              {status === "success" ? "記録しました" : "記録する"}
+              {status === "success" && recordedAmount !== null
+                ? `${formatYen(recordedAmount)}を記録しました`
+                : "記録する"}
             </Button>
           </SheetFooter>
         </form>

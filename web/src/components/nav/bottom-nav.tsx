@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, History, BarChart3, Settings, Plus } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { QuickAddSheet } from "@/components/income/quick-add-sheet";
+import { MilestoneToast } from "@/components/nav/milestone-toast";
 
 const NAV_ITEMS = [
   { href: "/", label: "ホーム", icon: Home },
@@ -20,6 +21,8 @@ const NAV_ITEMS_RIGHT = [
 export function BottomNav() {
   const pathname = usePathname();
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const dismissToast = useCallback(() => setToast(null), []);
 
   return (
     <>
@@ -46,7 +49,12 @@ export function BottomNav() {
         </div>
       </nav>
 
-      <QuickAddSheet open={quickAddOpen} onOpenChange={setQuickAddOpen} />
+      <QuickAddSheet
+        open={quickAddOpen}
+        onOpenChange={setQuickAddOpen}
+        onMilestone={setToast}
+      />
+      <MilestoneToast message={toast} onDismiss={dismissToast} />
     </>
   );
 }
