@@ -125,14 +125,19 @@ export function PastEntrySheet({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 px-5">
           <div className="flex flex-col gap-1.5">
-            <Label>金額の精度</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <Label id="past-amount-precision-label">金額の精度</Label>
+            <div
+              role="group"
+              aria-labelledby="past-amount-precision-label"
+              className="grid grid-cols-3 gap-2"
+            >
               {(["exact", "estimated", "unknown"] as const).map((p) => (
                 <button
                   type="button"
                   key={p}
                   onClick={() => setAmountPrecision(p)}
-                  className={`rounded-md border px-2 py-1.5 text-xs font-medium ${
+                  aria-pressed={amountPrecision === p}
+                  className={`min-h-11 rounded-md border px-2 py-1.5 text-xs font-medium ${
                     amountPrecision === p
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-input text-muted-foreground"
@@ -167,14 +172,19 @@ export function PastEntrySheet({
           )}
 
           <div className="flex flex-col gap-1.5">
-            <Label>時期の精度</Label>
-            <div className="grid grid-cols-3 gap-2">
+            <Label id="past-date-precision-label">時期の精度</Label>
+            <div
+              role="group"
+              aria-labelledby="past-date-precision-label"
+              className="grid grid-cols-3 gap-2"
+            >
               {(["year", "month", "day"] as const).map((p) => (
                 <button
                   type="button"
                   key={p}
                   onClick={() => setDatePrecision(p)}
-                  className={`rounded-md border px-2 py-1.5 text-xs font-medium ${
+                  aria-pressed={datePrecision === p}
+                  className={`min-h-11 rounded-md border px-2 py-1.5 text-xs font-medium ${
                     datePrecision === p
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-input text-muted-foreground"
@@ -189,9 +199,9 @@ export function PastEntrySheet({
           {datePrecision !== "year" && (
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <Label>月</Label>
+                <Label id="past-month-label">月</Label>
                 <Select value={month} onValueChange={setMonth}>
-                  <SelectTrigger>
+                  <SelectTrigger aria-labelledby="past-month-label">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -205,8 +215,9 @@ export function PastEntrySheet({
               </div>
               {datePrecision === "day" && (
                 <div className="flex flex-col gap-1.5">
-                  <Label>日</Label>
+                  <Label htmlFor="past-day">日</Label>
                   <Input
+                    id="past-day"
                     type="number"
                     min={1}
                     max={31}

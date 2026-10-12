@@ -13,9 +13,12 @@ import { useLayoutEffect, useRef, useState } from "react";
  */
 export function ChartFrame({
   height,
+  label,
   children,
 }: {
   height: number;
+  /** Short description for assistive tech; the SVG itself isn't readable. */
+  label: string;
   children: (width: number) => React.ReactNode;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -41,7 +44,7 @@ export function ChartFrame({
   }, []);
 
   return (
-    <div ref={ref} style={{ height, width: "100%" }}>
+    <div ref={ref} role="img" aria-label={label} style={{ height, width: "100%" }}>
       {width > 0 ? children(width) : null}
     </div>
   );

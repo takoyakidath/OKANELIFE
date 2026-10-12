@@ -46,14 +46,19 @@ export function IncomeEditForm({ income }: { income: Income }) {
   return (
     <form onSubmit={handleSave} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label>金額の精度</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <Label id="edit-amount-precision-label">金額の精度</Label>
+        <div
+          role="group"
+          aria-labelledby="edit-amount-precision-label"
+          className="grid grid-cols-3 gap-2"
+        >
           {(["exact", "estimated", "unknown"] as const).map((p) => (
             <button
               type="button"
               key={p}
               onClick={() => setAmountPrecision(p)}
-              className={`rounded-md border px-2 py-1.5 text-xs font-medium ${
+              aria-pressed={amountPrecision === p}
+              className={`min-h-11 rounded-md border px-2 py-1.5 text-xs font-medium ${
                 amountPrecision === p
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-input text-muted-foreground"
@@ -88,14 +93,19 @@ export function IncomeEditForm({ income }: { income: Income }) {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label>時期の精度</Label>
-          <div className="grid grid-cols-3 gap-1">
+          <Label id="edit-date-precision-label">時期の精度</Label>
+          <div
+            role="group"
+            aria-labelledby="edit-date-precision-label"
+            className="grid grid-cols-3 gap-1"
+          >
             {(["day", "month", "year"] as const).map((p) => (
               <button
                 type="button"
                 key={p}
                 onClick={() => setDatePrecision(p)}
-                className={`rounded-md border px-1.5 py-1.5 text-xs font-medium ${
+                aria-pressed={datePrecision === p}
+                className={`min-h-11 rounded-md border px-1.5 py-1.5 text-xs font-medium ${
                   datePrecision === p
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-input text-muted-foreground"

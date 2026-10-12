@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { formatCompactYen } from "@/lib/format";
+import { groupTopCategories } from "@/lib/chart-data";
 import type { CategoryTotal } from "@/lib/types";
 import { ChartFrame } from "./chart-frame";
 
@@ -14,12 +15,13 @@ const COLORS = [
 ];
 
 export function CategoryDonutChart({ data }: { data: CategoryTotal[] }) {
+  const grouped = groupTopCategories(data);
   return (
-    <ChartFrame height={260}>
+    <ChartFrame height={260} label="内訳の割合を示すドーナツグラフ">
       {(width) => (
         <PieChart width={width} height={260}>
-          <Pie data={data} dataKey="total" nameKey="label" innerRadius="55%" outerRadius="85%" paddingAngle={2}>
-            {data.map((_, i) => (
+          <Pie data={grouped} dataKey="total" nameKey="label" innerRadius="55%" outerRadius="85%" paddingAngle={2}>
+            {grouped.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>

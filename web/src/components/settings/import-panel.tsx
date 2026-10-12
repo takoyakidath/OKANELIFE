@@ -91,7 +91,11 @@ export function ImportPanel() {
         ZIPファイルを選択
       </Button>
 
-      {errorMessage && <p className="text-sm text-destructive">{errorMessage}</p>}
+      {errorMessage && (
+        <p role="alert" className="text-sm text-destructive">
+          {errorMessage}
+        </p>
+      )}
 
       {preview && status !== "done" && (
         <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4">
@@ -103,7 +107,7 @@ export function ImportPanel() {
             {preview.duplicates > 0 && <li>既存データと重複: {preview.duplicates}件</li>}
           </ul>
           {preview.warnings.length > 0 && (
-            <ul className="text-xs text-destructive">
+            <ul role="alert" className="text-xs text-destructive">
               {preview.warnings.map((w, i) => (
                 <li key={i}>{w}</li>
               ))}

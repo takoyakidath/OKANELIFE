@@ -243,9 +243,9 @@ export function QuickAddSheet({
             </p>
 
             <div className="flex flex-col gap-1.5">
-              <Label>収入源</Label>
+              <Label id="quick-source-label">収入源</Label>
               <Select value={sourceUuid} onValueChange={setSourceUuid}>
-                <SelectTrigger>
+                <SelectTrigger aria-labelledby="quick-source-label">
                   <SelectValue placeholder="選択" />
                 </SelectTrigger>
                 <SelectContent>
@@ -286,7 +286,9 @@ export function QuickAddSheet({
           </div>
 
           {errorMessage && (
-            <p className="text-sm text-destructive">{errorMessage}</p>
+            <p role="alert" className="text-sm text-destructive">
+              {errorMessage}
+            </p>
           )}
 
           <SheetFooter>

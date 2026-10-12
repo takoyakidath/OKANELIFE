@@ -49,3 +49,21 @@ export function formatCompactYen(amount: number): string {
   }
   return yenFormatter.format(amount);
 }
+
+/** Y-axis tick formatter for a yen chart. The unit is chosen once per chart
+ * (from its largest value) and shown as a caption, so tick labels stay short
+ * (`50`, `100`) instead of repeating "万円" on every tick. */
+export function yenAxis(values: number[]): {
+  unit: "万円" | "円";
+  format: (v: number) => string;
+} {
+  const max = Math.max(0, ...values.map((v) => Math.abs(v)));
+  if (max >= 10000) {
+    return {
+      unit: "万円",
+      format: (v) =>
+        (v / 10000).toLocaleString("ja-JP", { maximumFractionDigits: 1 }),
+    };
+  }
+  return { unit: "円", format: (v) => v.toLocaleString("ja-JP") };
+}

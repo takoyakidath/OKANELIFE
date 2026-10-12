@@ -19,7 +19,7 @@ export function CumulativeSpark({
   );
 
   return (
-    <ChartFrame height={96}>
+    <ChartFrame height={96} label="これまでの累計収入の推移グラフ">
       {(width) => (
         <AreaChart width={width} height={96} data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
           <defs>
