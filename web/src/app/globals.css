@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-@custom-variant dark (&:is(.dark *));
+@custom-variant dark (@media (prefers-color-scheme: dark));
 
 :root {
+  color-scheme: light dark;
   --radius: 1rem;
 
   /* OKANELIFE: warm, personal tone — not a fintech blue/gray dashboard. */
@@ -43,41 +44,43 @@
   --chart-5: oklch(0.6 0.16 320);
 }
 
-.dark {
-  --background: oklch(0.19 0.015 50);
-  --foreground: oklch(0.95 0.01 70);
-  --card: oklch(0.23 0.017 50);
-  --card-foreground: oklch(0.95 0.01 70);
-  --popover: oklch(0.23 0.017 50);
-  --popover-foreground: oklch(0.95 0.01 70);
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.19 0.015 50);
+    --foreground: oklch(0.95 0.01 70);
+    --card: oklch(0.23 0.017 50);
+    --card-foreground: oklch(0.95 0.01 70);
+    --popover: oklch(0.23 0.017 50);
+    --popover-foreground: oklch(0.95 0.01 70);
 
-  --primary: oklch(0.7 0.15 50);
-  --primary-foreground: oklch(0.19 0.015 50);
+    --primary: oklch(0.7 0.15 50);
+    --primary-foreground: oklch(0.19 0.015 50);
 
-  --secondary: oklch(0.28 0.02 50);
-  --secondary-foreground: oklch(0.95 0.01 70);
+    --secondary: oklch(0.28 0.02 50);
+    --secondary-foreground: oklch(0.95 0.01 70);
 
-  --muted: oklch(0.27 0.018 50);
-  --muted-foreground: oklch(0.68 0.02 60);
+    --muted: oklch(0.27 0.018 50);
+    --muted-foreground: oklch(0.68 0.02 60);
 
-  --accent: oklch(0.3 0.04 55);
-  --accent-foreground: oklch(0.95 0.02 60);
+    --accent: oklch(0.3 0.04 55);
+    --accent-foreground: oklch(0.95 0.02 60);
 
-  --destructive: oklch(0.62 0.2 25);
-  --destructive-foreground: oklch(0.97 0.01 70);
+    --destructive: oklch(0.62 0.2 25);
+    --destructive-foreground: oklch(0.97 0.01 70);
 
-  --success: oklch(0.64 0.14 150);
-  --success-foreground: oklch(0.15 0.01 50);
+    --success: oklch(0.64 0.14 150);
+    --success-foreground: oklch(0.15 0.01 50);
 
-  --border: oklch(0.32 0.02 50);
-  --input: oklch(0.32 0.02 50);
-  --ring: oklch(0.7 0.15 50);
+    --border: oklch(0.32 0.02 50);
+    --input: oklch(0.32 0.02 50);
+    --ring: oklch(0.7 0.15 50);
 
-  --chart-1: oklch(0.7 0.15 50);
-  --chart-2: oklch(0.68 0.13 145);
-  --chart-3: oklch(0.68 0.13 250);
-  --chart-4: oklch(0.75 0.13 85);
-  --chart-5: oklch(0.66 0.15 320);
+    --chart-1: oklch(0.7 0.15 50);
+    --chart-2: oklch(0.68 0.13 145);
+    --chart-3: oklch(0.68 0.13 250);
+    --chart-4: oklch(0.75 0.13 85);
+    --chart-5: oklch(0.66 0.15 320);
+  }
 }
 
 @theme inline {
@@ -113,7 +116,7 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 0.25rem);
 
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-geist-sans), var(--font-noto-sans-jp), sans-serif;
   --font-mono: var(--font-geist-mono);
 }
 
@@ -136,4 +139,15 @@
 }
 .pt-safe {
   padding-top: env(safe-area-inset-top);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

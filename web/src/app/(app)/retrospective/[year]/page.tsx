@@ -17,14 +17,16 @@ export default async function RetrospectivePage({
       <div className="flex items-center justify-between">
         <Link
           href={`/retrospective/${year - 1}`}
-          className="flex size-9 items-center justify-center rounded-full border border-border"
+          aria-label="前の年"
+          className="flex size-11 items-center justify-center rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ChevronLeft className="size-4" />
         </Link>
         <h1 className="text-lg font-semibold">{year}年を振り返る</h1>
         <Link
           href={`/retrospective/${year + 1}`}
-          className="flex size-9 items-center justify-center rounded-full border border-border"
+          aria-label="次の年"
+          className="flex size-11 items-center justify-center rounded-full border border-border outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <ChevronRight className="size-4" />
         </Link>

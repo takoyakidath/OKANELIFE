@@ -35,6 +35,8 @@ export function CumulativeSpark({
               fontSize: 12,
               borderRadius: 8,
               border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-card)",
+              color: "var(--color-card-foreground)",
             }}
           />
           <Area

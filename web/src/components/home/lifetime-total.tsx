@@ -8,11 +8,14 @@ export function LifetimeTotal({ amount }: { amount: number }) {
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    const duration = 700;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const duration = reduceMotion ? 0 : 700;
     const start = performance.now();
     let frame: number;
     function tick(now: number) {
-      const progress = Math.min((now - start) / duration, 1);
+      const progress = duration === 0 ? 1 : Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplay(Math.round(amount * eased));
       if (progress < 1) frame = requestAnimationFrame(tick);

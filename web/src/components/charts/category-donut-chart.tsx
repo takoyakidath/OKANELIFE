@@ -25,9 +25,15 @@ export function CategoryDonutChart({ data }: { data: CategoryTotal[] }) {
           </Pie>
           <Tooltip
             formatter={(value) => formatCompactYen(Number(value))}
-            contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--color-border)" }}
+            contentStyle={{
+              fontSize: 12,
+              borderRadius: 8,
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-card)",
+              color: "var(--color-card-foreground)",
+            }}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: 12, color: "var(--color-muted-foreground)" }} />
         </PieChart>
       )}
     </ChartFrame>

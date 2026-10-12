@@ -95,7 +95,7 @@ export function IncomeEditForm({ income }: { income: Income }) {
                 type="button"
                 key={p}
                 onClick={() => setDatePrecision(p)}
-                className={`rounded-md border px-1.5 py-1.5 text-[11px] font-medium ${
+                className={`rounded-md border px-1.5 py-1.5 text-xs font-medium ${
                   datePrecision === p
                     ? "border-primary bg-primary/10 text-primary"
                     : "border-input text-muted-foreground"
