@@ -8,11 +8,14 @@ export function LifetimeTotal({ amount }: { amount: number }) {
   const [display, setDisplay] = useState(0);
 
   useEffect(() => {
-    const duration = 700;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    const duration = reduceMotion ? 0 : 700;
     const start = performance.now();
     let frame: number;
     function tick(now: number) {
-      const progress = Math.min((now - start) / duration, 1);
+      const progress = duration === 0 ? 1 : Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       setDisplay(Math.round(amount * eased));
       if (progress < 1) frame = requestAnimationFrame(tick);
@@ -22,9 +25,9 @@ export function LifetimeTotal({ amount }: { amount: number }) {
   }, [amount]);
 
   return (
-    <div className="flex flex-col items-center gap-1 py-2 text-center">
+    <div className="flex flex-col items-center gap-2 py-4 text-center">
       <p className="text-sm font-medium text-muted-foreground">これまでに稼いだお金</p>
-      <p className="text-4xl font-bold tabular-nums tracking-tight sm:text-5xl">
+      <p className="text-5xl font-bold tabular-nums tracking-tight sm:text-6xl">
         ¥{display.toLocaleString("ja-JP")}
       </p>
     </div>

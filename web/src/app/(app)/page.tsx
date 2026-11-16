@@ -35,7 +35,8 @@ export default async function HomePage() {
       <LifetimeTotal amount={summary.lifetime_total} />
 
       {yearly.length > 1 && (
-        <Link href="/analysis" className="-my-2 block">
+        <Link href="/analysis" className="-my-2 block outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <p className="px-1 text-xs text-muted-foreground">これまでの人生</p>
           <CumulativeSpark points={yearly.map((y) => ({ label: `${y.year}`, total: y.total }))} />
         </Link>
       )}

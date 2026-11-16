@@ -34,7 +34,11 @@ export function DeleteAccountButton() {
       <p className="text-sm text-destructive">
         本当に削除しますか？すべてのデータが削除され、元に戻せません。
       </p>
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
       <div className="flex gap-2">
         <Button variant="destructive" onClick={handleDelete}>
           削除を確定する

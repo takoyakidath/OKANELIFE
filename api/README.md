@@ -73,11 +73,11 @@ Dependency-free (no PHPUnit) — each `tests/*Test.php` file returns a map of
    php bin/migrate.php
    ```
    FTP-only plans can't run the PHP CLI over SSH. Instead, open
-   `public/migrate.php` in a browser with the `MIGRATE_TOKEN` from step 3 as
-   a query param — it applies whatever's pending and is safe to hit again
+   `public/migrate.php` in a browser and submit the `MIGRATE_TOKEN` from step 3 in the
+   form (sent as POST, so it never lands in URLs/logs) — it applies whatever's pending and is safe to hit again
    after every deploy that adds new files under `migrations/`:
    ```
-   https://your-domain.example/migrate.php?token=<MIGRATE_TOKEN>
+   https://your-domain.example/migrate.php   # submit MIGRATE_TOKEN in the form (POST)
    ```
    It 403s without a matching token, and `MIGRATE_TOKEN` unset in `.env`
    disables it entirely. `./deploy.sh sql` remains available for bundling
@@ -105,7 +105,7 @@ Dependency-free (no PHPUnit) — each `tests/*Test.php` file returns a map of
 - `src/Http/` — Kernel (route table + error handling), controllers, auth
   middleware
 - `migrations/*.sql` — MySQL schema, applied in order by `Support\Migrator`
-  (run via `bin/migrate.php` over SSH, or `public/migrate.php?token=...`
+  (run via `bin/migrate.php` over SSH, or `public/migrate.php`
   over HTTP for FTP-only plans)
 - `bin/worker.php` — cron entry point for export jobs
 - `tests/` — the test runner and test files (SQLite-only, never touches

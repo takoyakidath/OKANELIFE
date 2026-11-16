@@ -11,7 +11,10 @@ export function RecentFeed({ items }: { items: TimelineItem[] }) {
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-semibold text-muted-foreground">最近の出来事</h2>
-        <Link href="/timeline" className="text-xs text-primary">
+        <Link
+          href="/timeline"
+          className="-my-3 -mr-2 flex min-h-11 items-center px-2 text-sm text-primary outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
           タイムラインを見る
         </Link>
       </div>

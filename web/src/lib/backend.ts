@@ -1,4 +1,5 @@
 import "server-only";
+import { headers as requestHeaders } from "next/headers";
 import { env } from "./env";
 
 export class BackendError extends Error {
@@ -33,6 +34,22 @@ export async function backendFetch(
   const finalHeaders = new Headers(headers);
   if (accessToken) {
     finalHeaders.set("Authorization", `Bearer ${accessToken}`);
+  }
+
+  // Let the backend rate-limit per end user instead of per Vercel egress IP.
+  // Only trusted by the backend when it also sees the shared secret.
+  const secret = process.env.BACKEND_SHARED_SECRET;
+  if (secret) {
+    try {
+      const forwarded = (await requestHeaders()).get("x-forwarded-for");
+      const clientIp = forwarded?.split(",")[0]?.trim();
+      if (clientIp) {
+        finalHeaders.set("X-BFF-Secret", secret);
+        finalHeaders.set("X-Client-Ip", clientIp);
+      }
+    } catch {
+      // called outside a request scope; fall back to the proxy's own IP
+    }
   }
 
   let body: BodyInit | undefined;

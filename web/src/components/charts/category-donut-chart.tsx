@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { formatCompactYen } from "@/lib/format";
+import { groupTopCategories } from "@/lib/chart-data";
 import type { CategoryTotal } from "@/lib/types";
 import { ChartFrame } from "./chart-frame";
 
@@ -14,20 +15,27 @@ const COLORS = [
 ];
 
 export function CategoryDonutChart({ data }: { data: CategoryTotal[] }) {
+  const grouped = groupTopCategories(data);
   return (
-    <ChartFrame height={260}>
+    <ChartFrame height={260} label="内訳の割合を示すドーナツグラフ">
       {(width) => (
         <PieChart width={width} height={260}>
-          <Pie data={data} dataKey="total" nameKey="label" innerRadius="55%" outerRadius="85%" paddingAngle={2}>
-            {data.map((_, i) => (
+          <Pie data={grouped} dataKey="total" nameKey="label" innerRadius="55%" outerRadius="85%" paddingAngle={2}>
+            {grouped.map((_, i) => (
               <Cell key={i} fill={COLORS[i % COLORS.length]} />
             ))}
           </Pie>
           <Tooltip
             formatter={(value) => formatCompactYen(Number(value))}
-            contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid var(--color-border)" }}
+            contentStyle={{
+              fontSize: 12,
+              borderRadius: 8,
+              border: "1px solid var(--color-border)",
+              backgroundColor: "var(--color-card)",
+              color: "var(--color-card-foreground)",
+            }}
           />
-          <Legend wrapperStyle={{ fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: 12, color: "var(--color-muted-foreground)" }} />
         </PieChart>
       )}
     </ChartFrame>

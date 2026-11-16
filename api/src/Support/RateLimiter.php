@@ -15,32 +15,24 @@ final class RateLimiter
         $pdo = Database::pdo();
         $windowStart = intdiv(time(), $windowSeconds) * $windowSeconds;
 
-        $stmt = $pdo->prepare('SELECT count, window_start FROM rate_limit_buckets WHERE bucket_key = ?');
+        // One atomic upsert so concurrent requests can't race on the
+        // INSERT (duplicate key -> 500). `count` is assigned before
+        // `window_start` because MySQL evaluates assignments left to right.
+        if (Database::driver() === 'sqlite') {
+            $sql = 'INSERT INTO rate_limit_buckets (bucket_key, window_start, count) VALUES (?, ?, 1)'
+                . ' ON CONFLICT(bucket_key) DO UPDATE SET'
+                . ' count = CASE WHEN window_start = excluded.window_start THEN count + 1 ELSE 1 END,'
+                . ' window_start = excluded.window_start';
+        } else {
+            $sql = 'INSERT INTO rate_limit_buckets (bucket_key, window_start, count) VALUES (?, ?, 1)'
+                . ' ON DUPLICATE KEY UPDATE'
+                . ' count = IF(window_start = VALUES(window_start), count + 1, 1),'
+                . ' window_start = VALUES(window_start)';
+        }
+        $pdo->prepare($sql)->execute([$key, $windowStart]);
+
+        $stmt = $pdo->prepare('SELECT count FROM rate_limit_buckets WHERE bucket_key = ?');
         $stmt->execute([$key]);
-        $row = $stmt->fetch();
-
-        if ($row === false) {
-            $insert = $pdo->prepare(
-                'INSERT INTO rate_limit_buckets (bucket_key, window_start, count) VALUES (?, ?, 1)'
-            );
-            $insert->execute([$key, $windowStart]);
-            return true;
-        }
-
-        if ((int) $row['window_start'] !== $windowStart) {
-            $update = $pdo->prepare(
-                'UPDATE rate_limit_buckets SET window_start = ?, count = 1 WHERE bucket_key = ?'
-            );
-            $update->execute([$windowStart, $key]);
-            return true;
-        }
-
-        if ((int) $row['count'] >= $limit) {
-            return false;
-        }
-
-        $update = $pdo->prepare('UPDATE rate_limit_buckets SET count = count + 1 WHERE bucket_key = ?');
-        $update->execute([$key]);
-        return true;
+        return (int) $stmt->fetchColumn() <= $limit;
     }
 }

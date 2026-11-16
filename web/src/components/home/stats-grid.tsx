@@ -24,14 +24,23 @@ export function StatsGrid({
     { label: "過去最高月収", value: formatCompactYen(stats.bestMonth) },
   ];
 
+  const [primary, ...rest] = items;
+
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {items.map((item) => (
-        <div key={item.label} className="rounded-xl border border-border bg-card p-3.5">
-          <p className="text-xs text-muted-foreground">{item.label}</p>
-          <p className="mt-1 text-lg font-semibold tabular-nums">{item.value}</p>
-        </div>
-      ))}
+    <div className="flex flex-col gap-3">
+      {/* This month is the figure people check most — give it the weight. */}
+      <div className="rounded-2xl border border-border bg-card px-5 py-4">
+        <p className="text-xs text-muted-foreground">{primary.label}</p>
+        <p className="mt-1 text-2xl font-semibold tabular-nums">{primary.value}</p>
+      </div>
+      <div className="grid grid-cols-3 gap-2 px-1">
+        {rest.map((item) => (
+          <div key={item.label}>
+            <p className="text-xs text-muted-foreground">{item.label}</p>
+            <p className="mt-0.5 text-sm font-semibold tabular-nums">{item.value}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

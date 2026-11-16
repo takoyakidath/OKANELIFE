@@ -38,7 +38,7 @@ final class Kernel
     {
         try {
             if (in_array($request->method, ['POST', 'PATCH', 'DELETE'], true)) {
-                $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+                $ip = $request->clientIp();
                 if (!RateLimiter::allow("write:{$ip}", 120, 60)) {
                     return $this->withSecurityHeaders(Response::error(429, 'リクエストが多すぎます'));
                 }

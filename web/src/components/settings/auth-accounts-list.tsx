@@ -27,7 +27,11 @@ export function AuthAccountsList({ accounts }: { accounts: AuthAccount[] }) {
 
   return (
     <div className="flex flex-col gap-2">
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      )}
       <div className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
         {accounts.map((a) => (
           <div key={a.id} className="flex items-center justify-between px-4 py-3">

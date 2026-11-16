@@ -9,7 +9,16 @@ import { backendFetch } from "@/lib/backend";
  * Lolipop server-to-server, so the backend never needs to accept CORS
  * requests from a browser origin at all (see docs/DESIGN.md §2).
  */
+// Path segments are ids, slugs and years only; rejecting anything else
+// (".", "..", encoded slashes, ...) keeps the proxy from being steered to
+// another backend path such as /status or a traversal out of /v1.
+const SAFE_SEGMENT = /^[A-Za-z0-9_-]+$/;
+
 async function handle(request: NextRequest, path: string[]) {
+  if (!path.every((segment) => SAFE_SEGMENT.test(segment))) {
+    return NextResponse.json({ message: "not found" }, { status: 404 });
+  }
+
   const session = await getValidSession();
   if (!session) {
     return NextResponse.json({ message: "unauthenticated" }, { status: 401 });
@@ -19,20 +28,28 @@ async function handle(request: NextRequest, path: string[]) {
   const backendPath = `/v1/${path.join("/")}${search}`;
 
   const hasBody = !["GET", "HEAD", "DELETE"].includes(request.method);
-  const upstream = await backendFetch(backendPath, {
-    method: request.method,
-    accessToken: session.accessToken,
-    headers: {
-      "Content-Type": request.headers.get("content-type") ?? "application/json",
-    },
-    rawBody: hasBody ? request.body : undefined,
-    // @ts-expect-error -- required by undici when streaming a request body
-    duplex: hasBody ? "half" : undefined,
-  });
+  let upstream: Response;
+  try {
+    upstream = await backendFetch(backendPath, {
+      method: request.method,
+      accessToken: session.accessToken,
+      headers: {
+        "Content-Type": request.headers.get("content-type") ?? "application/json",
+      },
+      rawBody: hasBody ? request.body : undefined,
+      // @ts-expect-error -- required by undici when streaming a request body
+      duplex: hasBody ? "half" : undefined,
+    });
+  } catch (error) {
+    console.error("backend proxy failed", error);
+    return NextResponse.json({ message: "backend unavailable" }, { status: 502 });
+  }
 
   const headers = new Headers(upstream.headers);
   headers.delete("content-encoding");
   headers.delete("content-length");
+  // The browser's session lives in our own cookie; never relay the backend's.
+  headers.delete("set-cookie");
 
   return new NextResponse(upstream.body, {
     status: upstream.status,
