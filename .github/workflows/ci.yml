@@ -19,6 +19,8 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
       - run: npm ci
+      # PageProps/LayoutProps/RouteContext are generated types, absent on a fresh checkout.
+      - run: npx next typegen
       - run: npx tsc --noEmit
       - run: npm run lint
       - run: npm test
