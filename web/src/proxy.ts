@@ -4,7 +4,7 @@ import { SESSION_COOKIE_NAME } from "@/lib/env";
 import { parseSession, decodeJwtExp, isExpiringSoon } from "@/lib/session";
 import { trustedOrigin } from "@/lib/trusted-origin";
 
-const PUBLIC_PATHS = ["/login", "/offline", "/api/auth", "/manifest.webmanifest", "/sw.js"];
+const PUBLIC_PATHS = ["/login", "/welcome", "/offline", "/api/auth", "/manifest.webmanifest", "/sw.js"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`));
@@ -26,6 +26,15 @@ export function proxy(request: NextRequest) {
   const origin = trustedOrigin(request);
 
   if (!session) {
+    // Signed-out visitors landing on "/" get the landing page (URL unchanged).
+    // A rewrite stays on this deployment, so it uses the request's own URL
+    // rather than trustedOrigin (which can point at another host).
+    if (pathname === "/") {
+      const welcomeUrl = request.nextUrl.clone();
+      welcomeUrl.pathname = "/welcome";
+      return NextResponse.rewrite(welcomeUrl);
+    }
+
     const loginUrl = new URL("/login", origin);
     loginUrl.searchParams.set("redirect", pathname);
     return NextResponse.redirect(loginUrl);
