@@ -17,7 +17,7 @@
 #   mysql_host=... mysql_user=... mysql_pass=... mysql_db=...   # api-env 用
 #   JWT_SECRET=...   GOOGLE_CLIENT_ID=...                      # api-env 用
 #   MIGRATE_TOKEN=...                                          # api-env 用。FTP デプロイ後、
-#                                                               # https://.../migrate.php?token=... を開いてマイグレーション実行
+#                                                               # https://.../migrate.php を開き、フォームに MIGRATE_TOKEN を入力して実行(URLには載せない)
 #
 #   LOLIPOP_SSH_HOST=ssh.lolipop.jp                  # SSH で送る場合(マイグレーションも実行)
 #   LOLIPOP_SSH_PORT=2222
@@ -91,7 +91,7 @@ LFTP
 
   echo
   echo "FTP ではマイグレーションを実行できません。新しいマイグレーションがあれば"
-  echo "  https://<domain>/migrate.php?token=\$MIGRATE_TOKEN を開いて適用してください"
+  echo "  https://<domain>/migrate.php を開き、MIGRATE_TOKEN をフォームに入力して適用してください"
   echo "  (api-env で MIGRATE_TOKEN 未設定の場合は先に ./deploy.sh api-env を実行)。"
   echo "  初回導入など phpMyAdmin から直接流したい場合は ./deploy.sh sql も使えます。"
 }
@@ -147,6 +147,7 @@ DB_PASS=$mysql_pass
 JWT_SECRET=$JWT_SECRET
 GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
 MIGRATE_TOKEN=$MIGRATE_TOKEN
+BFF_SECRET=${BFF_SECRET:-}
 API_BASE_PATH=${API_BASE_PATH:-}
 ENV
 

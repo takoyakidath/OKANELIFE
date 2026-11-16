@@ -11,5 +11,8 @@ export function safeRedirectPath(value: string | null | undefined): string {
   // ("//evil.com", which browsers treat as scheme-relative).
   if (!value.startsWith("/") || value.startsWith("//")) return "/";
   if (value.includes("://")) return "/";
+  // Browsers treat a backslash as "/", so "/<backslash>evil.com" acts like "//evil.com";
+  // control characters (tab/newline) are stripped by URL parsers the same way.
+  if (/[\\\u0000-\u001f]/.test(value)) return "/";
   return value;
 }

@@ -67,6 +67,25 @@ final class Request
         return $this->headers[strtolower($name)] ?? $default;
     }
 
+    /**
+     * The end user's IP. Behind the Next.js BFF, REMOTE_ADDR is always the
+     * proxy's address, so the BFF forwards the real one in X-Client-Ip —
+     * honoured only when it also presents the shared BFF_SECRET.
+     */
+    public function clientIp(): string
+    {
+        $remote = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $secret = (string) Env::get('BFF_SECRET', '');
+        $given = $this->header('x-bff-secret');
+        $forwarded = $this->header('x-client-ip');
+        if ($secret !== '' && $given !== null && $forwarded !== null
+            && hash_equals($secret, $given)
+            && filter_var($forwarded, FILTER_VALIDATE_IP) !== false) {
+            return $forwarded;
+        }
+        return $remote;
+    }
+
     public function bearerToken(): ?string
     {
         $auth = $this->header('authorization');

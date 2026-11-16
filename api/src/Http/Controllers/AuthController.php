@@ -17,7 +17,7 @@ final class AuthController
 
     public function googleLogin(Request $request): Response
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ip = $request->clientIp();
         if (!RateLimiter::allow("auth:login:{$ip}", 20, 300)) {
             return Response::error(429, 'しばらくしてから再度お試しください');
         }
@@ -59,7 +59,7 @@ final class AuthController
 
     public function refresh(Request $request): Response
     {
-        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $ip = $request->clientIp();
         if (!RateLimiter::allow("auth:refresh:{$ip}", 60, 300)) {
             return Response::error(429, 'しばらくしてから再度お試しください');
         }

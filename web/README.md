@@ -32,6 +32,8 @@ See `.env.local.example`. `BACKEND_API_BASE_URL` must point at a running
 instance of `../api` (see its own README for local setup with SQLite).
 `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are only used server-side, in the
 OAuth Route Handlers under `src/app/api/auth/`.
+Optional: `BACKEND_SHARED_SECRET` (same value as the API's `BFF_SECRET`) makes the
+BFF forward the end user's IP so the API rate-limits per user, not per Vercel IP.
 
 ## Scripts
 
