@@ -1,3 +1,5 @@
 .env
 .DS_Store
 okanelife-migrations.sql
+.vercel
+.playwright-mcp
