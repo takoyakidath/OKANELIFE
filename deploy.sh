@@ -42,7 +42,8 @@ load_env() {
 deploy_web() {
   local prod="${1:-}"
   command -v vercel >/dev/null || { echo "vercel CLI がありません: npm i -g vercel" >&2; exit 1; }
-  cd "$ROOT/web"
+  # Vercel project Root Directory is "web", so deploy from the repo root.
+  cd "$ROOT"
   if [[ "$prod" == "--prod" ]]; then
     echo "==> web: Vercel 本番デプロイ"
     vercel deploy --prod
