@@ -1,0 +1,8 @@
+# Deploying from the repo root uploads the whole tree; only web/ is built.
+# Exclude everything else (api/, docs/, secrets, SQL dumps) explicitly.
+/*
+!/web
+.env
+**/.env
+**/.env.*
+*.sql
